@@ -1,52 +1,45 @@
 import React from 'react';
 import Spline from '@splinetool/react-spline';
-import { Sparkles } from 'lucide-react';
 
-const StoreLogo = ({ src, alt }) => (
-  <img
-    src={src}
-    alt={alt}
-    className="h-8 w-8 rounded-full bg-white/10 p-1 ring-1 ring-white/20 backdrop-blur"
-  />
-);
+const storeLogos = [
+  { name: 'Amazon', url: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg' },
+  { name: 'Flipkart', url: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Flipkart_logo.png' },
+  { name: 'Snapdeal', url: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Snapdeal_logo.png' },
+  { name: 'Meesho', url: 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Meesho-logo.png' },
+];
 
-const HeroSection = ({ appName = 'SmartFindr', tagline = 'Shop Smart. Spend Less. Earn More.', children }) => {
+export default function HeroSection({ appName = 'SmartFindr', tagline = 'Find the smartest deals across stores' }) {
   return (
-    <section className="relative h-[70vh] min-h-[540px] w-full overflow-hidden rounded-2xl bg-slate-900/60">
+    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 shadow-xl">
       <div className="absolute inset-0">
-        <Spline
-          scene="https://prod.spline.design/4cHQr84zOGAHOehh/scene.splinecode"
-          style={{ width: '100%', height: '100%' }}
-        />
+        <Spline scene="https://prod.spline.design/YmXQyIu0iYB2Vw8F/scene.splinecode" style={{ width: '100%', height: '100%' }} />
       </div>
 
-      {/* Gradient overlays for glow, non-blocking */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-slate-950/80" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(108,99,255,0.25),transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/70 to-slate-950/95" />
 
-      <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-4 text-center text-white">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs backdrop-blur-md">
-          <Sparkles size={14} />
-          <span className="opacity-90">AI-powered affiliate deal intelligence</span>
-        </div>
-        <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-6xl">
-          {appName}
-        </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-sm opacity-90 md:text-base">
-          {tagline} Compare prices, ratings, delivery, and reviews across top stores with an AI Smart Value Score.
-        </p>
+      <div className="relative z-10 px-6 py-20 sm:px-10 lg:px-14">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 backdrop-blur">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+            Live deal intelligence
+          </span>
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            {appName}
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
+            {tagline}. Compare prices, ratings, delivery time, and sentiment — then buy with confidence.
+          </p>
 
-        <div className="mt-8 w-full max-w-2xl">{children}</div>
-
-        <div className="mt-6 flex items-center gap-3 opacity-90">
-          <StoreLogo src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" />
-          <StoreLogo src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flipkart_logo.png" alt="Flipkart" />
-          <StoreLogo src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Snapdeal_Logo.png" alt="Snapdeal" />
-          <StoreLogo src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Meesho_Logo.png" alt="Meesho" />
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 opacity-90">
+            {storeLogos.map((s) => (
+              <div key={s.name} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur">
+                <img src={s.url} alt={s.name} className="h-6 w-auto" />
+                <span className="text-sm text-slate-200">{s.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default HeroSection;
+}

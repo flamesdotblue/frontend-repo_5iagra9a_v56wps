@@ -1,35 +1,43 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 
-const SearchBar = ({ onSearch, placeholder = 'Search any product (e.g., iPhone 15, Nike Shoes, Earbuds)...' }) => {
+export default function SearchBar({ onSearch }) {
   const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
-    onSearch?.(query.trim());
+    setLoading(true);
+    try {
+      await onSearch?.(query.trim());
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={submit} className="group relative">
-      <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-[#0A84FF] via-[#6C63FF] to-[#8A2BE2] opacity-60 blur-md transition duration-300 group-hover:opacity-90" />
-      <div className="relative flex items-center rounded-2xl bg-slate-900/80 p-2 pl-4 ring-1 ring-white/10 backdrop-blur-xl">
-        <Search className="mr-2 h-5 w-5 text-white/70" />
+    <form onSubmit={handleSubmit} className="relative mx-auto w-full max-w-2xl">
+      <div className="group relative flex items-center rounded-2xl border border-white/10 bg-white/5 p-2 backdrop-blur transition focus-within:border-emerald-400/60">
+        <Search className="ml-1 h-5 w-5 text-slate-300" />
         <input
+          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          className="w-full bg-transparent py-3 text-sm text-white placeholder-white/50 outline-none md:text-base"
+          placeholder="Search products, e.g. wireless earbuds"
+          className="ml-2 w-full bg-transparent py-2 text-slate-100 placeholder:text-slate-400 focus:outline-none"
         />
         <button
           type="submit"
-          className="rounded-xl bg-gradient-to-r from-[#0A84FF] to-[#6C63FF] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition hover:brightness-110"
+          className="ml-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={loading}
         >
-          Search
+          {loading ? 'Searching…' : 'Compare'}
         </button>
+      </div>
+      <div className="pointer-events-none absolute -inset-x-10 -top-2 bottom-0 -z-0 blur-2xl transition duration-500 group-focus-within:opacity-100" aria-hidden>
+        <div className="mx-auto h-full max-w-2xl bg-gradient-to-r from-emerald-500/20 via-cyan-500/20 to-fuchsia-500/20" />
       </div>
     </form>
   );
-};
-
-export default SearchBar;
+}

@@ -1,106 +1,130 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import HeroSection from './components/HeroSection';
 import SearchBar from './components/SearchBar';
 import ComparisonGrid from './components/ComparisonGrid';
 import ChatAssistant from './components/ChatAssistant';
 
-const affiliateIds = {
-  Amazon: 'yourAmazonID',
-  Flipkart: 'yourFlipkartID',
-  Meesho: 'yourMeeshoID',
-  Snapdeal: 'yourSnapdealID',
+const AFFILIATE_IDS = {
+  amazon: 'aff-amz-123',
+  flipkart: 'aff-flk-456',
+  snapdeal: 'aff-snp-789',
+  meesho: 'aff-msh-321',
 };
 
-const affiliateUrlFor = (store, productId) => {
-  switch (store) {
-    case 'Amazon':
-      return `https://www.amazon.in/dp/${productId}/?tag=${affiliateIds.Amazon}`;
-    case 'Flipkart':
-      return `https://www.flipkart.com/item/${productId}?affid=${affiliateIds.Flipkart}`;
-    case 'Snapdeal':
-      return `https://www.snapdeal.com/product/${productId}?utm_source=aff_${affiliateIds.Snapdeal}`;
-    case 'Meesho':
-      return `https://www.meesho.com/item/${productId}?utm_source=aff_${affiliateIds.Meesho}`;
-    default:
-      return '#';
-  }
-};
+function affiliateUrlFor(store, productId) {
+  const id = AFFILIATE_IDS[store] || 'aff-generic';
+  const baseMap = {
+    amazon: `https://www.amazon.in/dp/${productId}?tag=${id}`,
+    flipkart: `https://www.flipkart.com/item/${productId}?affid=${id}`,
+    snapdeal: `https://www.snapdeal.com/product/${productId}?utm_source=${id}`,
+    meesho: `https://meesho.com/item/${productId}?utm_campaign=${id}`,
+  };
+  return baseMap[store] || `https://example.com/product/${productId}?ref=${id}`;
+}
 
-const mockFetch = async (query) => {
-  // Simulate latency
+async function mockFetchDeals(query) {
   await new Promise((r) => setTimeout(r, 800));
-  const title = `${query} — Top Picks`;
-  const baseImg = `https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1200&auto=format&fit=crop`;
-  const id = (prefix) => `${prefix}-${Math.abs(hashCode(query)) % 100000}`;
-  const items = [
-    { store: 'Amazon', price: 74999, origPrice: 79999, rating: 4.6, deliveryDays: 2, sentiment: 'positive', title, image: baseImg, productId: id('amz'), limitedTime: true },
-    { store: 'Flipkart', price: 73999, origPrice: 78999, rating: 4.5, deliveryDays: 3, sentiment: 'positive', title, image: baseImg, productId: id('flp') },
-    { store: 'Snapdeal', price: 75999, origPrice: 81999, rating: 4.2, deliveryDays: 5, sentiment: 'mixed', title, image: baseImg, productId: id('snp') },
-    { store: 'Meesho', price: 72999, origPrice: 76999, rating: 4.1, deliveryDays: 6, sentiment: 'mixed', title, image: baseImg, productId: id('msh') },
-  ];
-  return items.map((i) => ({ ...i, affiliateUrl: affiliateUrlFor(i.store, i.productId) }));
-};
+  const base = [
+    {
+      id: 'amz-001',
+      store: 'amazon',
+      title: `${query} – Amazon`,
+      price: 1799,
+      origPrice: 2499,
+      rating: 4.3,
+      deliveryDays: 2,
+      image: 'https://images.unsplash.com/photo-1695740633675-d060b607f5c4?ixid=M3w3OTkxMTl8MHwxfHNlYXJjaHwxfHxjZXJhbWljJTIwcG90dGVyeSUyMGhhbmRtYWRlfGVufDB8MHx8fDE3NjE1MDAxMzd8MA&ixlib=rb-4.1.0&w=1600&auto=format&fit=crop&q=80',
+      limitedTime: true,
+      sentimentScore: 0.68,
+    },
+    {
+      id: 'flk-002',
+      store: 'flipkart',
+      title: `${query} – Flipkart`,
+      price: 1699,
+      origPrice: 2199,
+      rating: 4.1,
+      deliveryDays: 3,
+      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=400&auto=format&fit=crop',
+      limitedTime: false,
+      sentimentScore: 0.62,
+    },
+    {
+      id: 'snp-003',
+      store: 'snapdeal',
+      title: `${query} – Snapdeal`,
+      price: 1899,
+      origPrice: 2399,
+      rating: 4.0,
+      deliveryDays: 5,
+      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop',
+      limitedTime: false,
+      sentimentScore: 0.58,
+    },
+    {
+      id: 'msh-004',
+      store: 'meesho',
+      title: `${query} – Meesho`,
+      price: 1649,
+      origPrice: 2099,
+      rating: 4.2,
+      deliveryDays: 4,
+      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=400&auto=format&fit=crop',
+      limitedTime: true,
+      sentimentScore: 0.6,
+    },
+  ].map((i) => ({ ...i, affiliateUrl: affiliateUrlFor(i.store, i.id) }));
 
-function hashCode(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return hash;
+  return base;
 }
 
 export default function App() {
-  const [query, setQuery] = useState('');
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState([]);
 
-  const onSearch = async (q) => {
-    setQuery(q);
+  const handleSearch = async (query) => {
     setLoading(true);
-    const data = await mockFetch(q);
+    const deals = await mockFetchDeals(query);
+    setItems(deals);
     setLoading(false);
-    // Compute Smart Score context once for chat
-    const prices = data.map((i) => i.price);
-    const deliveries = data.map((i) => i.deliveryDays);
-    const ratings = data.map((i) => i.rating);
-    const stats = {
-      minPrice: Math.min(...prices),
-      maxPrice: Math.max(...prices),
-      minDelivery: Math.min(...deliveries),
-      maxDelivery: Math.max(...deliveries),
-      maxRating: Math.max(...ratings),
-    };
-    const enriched = data.map((i) => {
-      const ratingScore = i.rating / 5;
-      const priceScore = 1 - (i.price - stats.minPrice) / Math.max(1, stats.maxPrice - stats.minPrice);
-      const deliveryScore = 1 - (i.deliveryDays - stats.minDelivery) / Math.max(1, stats.maxDelivery - stats.minDelivery);
-      const sentimentScore = (i.sentiment === 'positive' ? 1 : i.sentiment === 'mixed' ? 0.6 : 0.35);
-      const smart = Math.round(100 * (0.4 * ratingScore + 0.35 * priceScore + 0.15 * deliveryScore + 0.1 * sentimentScore));
-      return { ...i, smartScore: smart };
-    });
-    setResults(enriched);
   };
 
+  const smartSummary = useMemo(() => {
+    if (!items.length) return '';
+    const cheapest = [...items].sort((a, b) => a.price - b.price)[0];
+    const bestRated = [...items].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+    return `Cheapest is ₹${cheapest.price.toLocaleString()} on ${cheapest.store}. Best rated is ${bestRated.rating}★ on ${bestRated.store}.`;
+  }, [items]);
+
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 text-white md:px-6 md:py-10">
-      <div className="mx-auto max-w-6xl">
-        <HeroSection appName="SmartFindr" tagline="Shop Smart. Spend Less. Earn More.">
-          <SearchBar onSearch={onSearch} />
-        </HeroSection>
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <HeroSection appName="SmartFindr" tagline="Compare real-time deals with AI insight" />
+
+        <div className="mx-auto mt-8 max-w-3xl">
+          <SearchBar onSearch={handleSearch} />
+          {loading && (
+            <div className="mt-4 text-center text-slate-400">Gathering deals…</div>
+          )}
+        </div>
 
         <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <ComparisonGrid items={results} loading={loading} query={query} />
+            <ComparisonGrid items={items} />
           </div>
-          <div className="h-[520px] lg:sticky lg:top-6">
-            <ChatAssistant context={{ items: results, query }} />
+          <div className="lg:col-span-1">
+            <ChatAssistant items={items} />
+            {smartSummary && (
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+                {smartSummary}
+              </div>
+            )}
           </div>
         </div>
 
-        <footer className="mt-12 flex flex-col items-center justify-center gap-1 border-t border-white/10 pt-6 text-center text-xs text-white/60">
-          <div>SmartFindr — AI-powered affiliate deal comparison</div>
-          <div>Find deals. Earn smarter. Highlighting best price, quality, and value with glowing neon UI.</div>
+        <footer className="mt-12 flex flex-col items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400 sm:flex-row">
+          <div>© {new Date().getFullYear()} SmartFindr · Smarter shopping starts here.</div>
+          <div className="opacity-75">Affiliate links may earn us a commission.</div>
         </footer>
       </div>
     </div>
