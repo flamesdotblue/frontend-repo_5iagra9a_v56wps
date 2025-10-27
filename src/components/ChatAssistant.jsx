@@ -4,25 +4,31 @@ import { MessageCircle, Send, Sparkles } from 'lucide-react';
 const canned = (q, context) => {
   const lower = q.toLowerCase();
   if (!context?.items?.length) {
-    return "Search a product first so I can analyze real offers across stores.";
+    return "Search a product first so I can analyze live deals across stores and share affiliate-friendly links.";
   }
-  if (lower.includes('cheapest') || lower.includes('lowest')) {
-    const cheapest = [...context.items].sort((a, b) => a.price - b.price)[0];
-    return `The lowest price is ₹${cheapest.price.toLocaleString('en-IN')} on ${cheapest.store}. Smart Value Score: ${cheapest.smartScore}.`;
+  if (lower.includes('cheapest') || lower.includes('lowest') || lower.includes('under')) {
+    const filtered = context.items
+      .filter((i) => {
+        const num = parseInt(lower.replace(/\D/g, ''), 10);
+        return lower.includes('under') ? i.price <= (isNaN(num) ? Infinity : num) : true;
+      })
+      .sort((a, b) => a.price - b.price);
+    const cheapest = filtered[0] || context.items.sort((a, b) => a.price - b.price)[0];
+    return `Cheapest option: ₹${cheapest.price.toLocaleString('en-IN')} on ${cheapest.store}. Smart Score ${cheapest.smartScore}. Link: ${cheapest.affiliateUrl}`;
   }
-  if (lower.includes('best') && lower.includes('quality')) {
+  if (lower.includes('best') && (lower.includes('quality') || lower.includes('rated'))) {
     const best = [...context.items].sort((a, b) => b.rating - a.rating)[0];
-    return `${best.store} has the best rated option (${best.rating.toFixed(1)}★). Smart Value Score: ${best.smartScore}.`;
+    return `Best quality: ${best.rating.toFixed(1)}★ on ${best.store}. Smart Score ${best.smartScore}. Link: ${best.affiliateUrl}`;
   }
   if (lower.includes('wait') || lower.includes('discount')) {
-    return 'Based on typical sale patterns, prices often drop 10–15% during major festivals. If you can wait 1–2 weeks, you might save more.';
+    return 'Prices often drop 10–15% during major sales. If you can wait 1–2 weeks, you could save more. I’ll highlight limited-time deals when available.';
   }
-  return 'I analyze price, ratings, delivery, and reviews to craft a Smart Value Score. Ask: "Where is it cheapest?" or "Should I wait for sales?"';
+  return 'Ask me things like: "Cheapest smartwatch under ₹2000", "Best rated earbuds", or "Should I wait for a sale?"';
 };
 
 const ChatAssistant = ({ context }) => {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! I’m your AI shopping buddy. Ask me about prices, quality, or when to buy.' },
+    { role: 'assistant', content: 'Hi! I’m your AI deals assistant. Ask about cheapest prices, best quality, or time-to-buy.' },
   ]);
   const [input, setInput] = useState('');
   const listRef = useRef(null);
@@ -75,7 +81,7 @@ const ChatAssistant = ({ context }) => {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about cheapest price, best quality, or when to buy..."
+            placeholder="Ask for cheapest, best rated, or deals under a price..."
             className="w-full bg-transparent py-2 text-sm text-white placeholder-white/50 outline-none"
           />
         </div>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Star, Store, Truck, Tag, Heart, Sparkles } from 'lucide-react';
+import { Star, Store, Truck, Tag, Heart, Sparkles, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const brandColors = {
@@ -11,8 +11,7 @@ const brandColors = {
 };
 
 function smartValueScore(item, stats) {
-  // Normalize components: rating(0-1), price inverse, delivery inverse
-  const ratingScore = item.rating / 5; // 0..1
+  const ratingScore = item.rating / 5;
   const priceScore = 1 - (item.price - stats.minPrice) / Math.max(1, stats.maxPrice - stats.minPrice);
   const deliveryScore = 1 - (item.deliveryDays - stats.minDelivery) / Math.max(1, stats.maxDelivery - stats.minDelivery);
   const sentimentScore = (item.sentiment === 'positive' ? 1 : item.sentiment === 'mixed' ? 0.6 : 0.35);
@@ -84,6 +83,7 @@ const ComparisonGrid = ({ items = [], loading = false, query = '' }) => {
             {enriched.map((item) => {
               const isBestPrice = item.price === bestPrice;
               const isBestRating = item.rating === bestRating;
+              const discountPct = item.origPrice ? Math.max(0, Math.round(((item.origPrice - item.price) / item.origPrice) * 100)) : null;
               return (
                 <div
                   key={item.store}
@@ -116,6 +116,16 @@ const ComparisonGrid = ({ items = [], loading = false, query = '' }) => {
                           <Tag className="h-4 w-4 text-emerald-400" />
                           <span className="font-semibold">₹{item.price.toLocaleString('en-IN')}</span>
                         </div>
+                        {item.origPrice && (
+                          <div className="flex items-center gap-1 rounded-lg bg-white/5 px-2 py-1 text-xs text-white/70 ring-1 ring-white/10 line-through">
+                            ₹{item.origPrice.toLocaleString('en-IN')}
+                          </div>
+                        )}
+                        {discountPct !== null && (
+                          <div className="rounded-lg bg-emerald-500/20 px-2 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-500/30">
+                            -{discountPct}%
+                          </div>
+                        )}
                         <div className="flex items-center gap-1 rounded-lg bg-white/5 px-2 py-1 text-xs text-white/80 ring-1 ring-white/10">
                           <Truck className="h-4 w-4 text-sky-400" />
                           <span>{item.deliveryDays}d</span>
@@ -144,18 +154,22 @@ const ComparisonGrid = ({ items = [], loading = false, query = '' }) => {
                             ? 'bg-yellow-500/15 text-yellow-300 ring-yellow-500/30'
                             : 'bg-rose-500/15 text-rose-300 ring-rose-500/30'
                         }`}>
-                          {item.sentiment === 'positive' ? 'Highly Rated' : item.sentiment === 'mixed' ? 'Mixed Reviews' : 'Caution'}
+                          {item.sentiment === 'positive' ? 'Positive' : item.sentiment === 'mixed' ? 'Mixed' : 'Negative'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-xs text-white/60">
-                    <span>Free returns available</span>
-                    <button className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-2 py-1 text-white/80 ring-1 ring-white/10 transition hover:bg-white/10">
-                      <Heart className="h-3.5 w-3.5" />
-                      Wishlist
-                    </button>
+                  <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-xs text-white/70">
+                    <span>{item.limitedTime ? 'Limited-time deal' : 'Free returns available'}</span>
+                    <a
+                      href={item.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium text-white ring-1 ring-white/15 transition hover:bg-white/20"
+                    >
+                      Buy Now <ExternalLink className="h-4 w-4" />
+                    </a>
                   </div>
                 </div>
               );
