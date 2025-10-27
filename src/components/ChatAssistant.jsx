@@ -1,58 +1,75 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
-function getAdviceMessage(query, items) {
-  const normalized = query.toLowerCase();
-  const cheapest = [...items].sort((a, b) => a.price - b.price)[0];
-  const bestRated = [...items].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
-
-  if (normalized.includes('cheap') || normalized.includes('under')) {
-    return cheapest ? `Cheapest option is ${cheapest.title} at ₹${cheapest.price.toLocaleString()}.` : 'No items found.';
-  }
-  if (normalized.includes('best') || normalized.includes('quality')) {
-    return bestRated ? `Best rated is ${bestRated.title} with ${bestRated.rating}★.` : 'No items found.';
-  }
-  return 'Try asking for the cheapest option or the best rated one.';
-}
-
-export default function ChatAssistant({ items = [] }) {
+export default function ChatAssistant({ items }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! Ask me for cheapest or best rated picks.' },
+    { role: 'assistant', content: 'Hi! Ask me for the cheapest or the best rated option.' },
   ]);
-  const [input, setInput] = useState('');
+  const inputRef = useRef(null);
 
-  const lastQuery = useMemo(() => messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '', [messages]);
+  const cheapest = useMemo(() => {
+    if (!items?.length) return null;
+    return items.reduce((min, it) => (it.price < min.price ? it : min), items[0]);
+  }, [items]);
 
-  const handleSend = () => {
-    const q = input.trim();
-    if (!q) return;
-    const reply = getAdviceMessage(q, items);
-    setMessages((prev) => [...prev, { role: 'user', content: q }, { role: 'assistant', content: reply }]);
-    setInput('');
+  const bestRated = useMemo(() => {
+    if (!items?.length) return null;
+    return items
+      .slice()
+      .sort((a, b) => b.rating - a.rating || a.price - b.price)[0];
+  }, [items]);
+
+  const send = (e) => {
+    e.preventDefault();
+    const text = inputRef.current?.value?.trim();
+    if (!text) return;
+    setMessages((m) => [...m, { role: 'user', content: text }]);
+
+    const lower = text.toLowerCase();
+    let reply = "I can help summarize deals. Try asking for 'cheapest' or 'best rated'.";
+    if (lower.includes('cheapest') || lower.includes('lowest')) {
+      if (cheapest) {
+        reply = `Cheapest is ${cheapest.store} at ₹${Math.round(cheapest.price)} with delivery in ${cheapest.deliveryDays} days.`;
+      } else reply = 'No items yet. Search something above!';
+    } else if (lower.includes('best') || lower.includes('rating')) {
+      if (bestRated) {
+        reply = `Best rated is ${bestRated.store} rated ${bestRated.rating.toFixed(1)} at ₹${Math.round(bestRated.price)}.`;
+      } else reply = 'No items yet. Search something above!';
+    }
+
+    setTimeout(() => {
+      setMessages((m) => [...m, { role: 'assistant', content: reply }]);
+    }, 300);
+
+    if (inputRef.current) inputRef.current.value = '';
   };
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-      <div className="mb-3 text-sm font-medium text-slate-200">AI Assistant</div>
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-        {messages.map((m, idx) => (
-          <div key={idx} className={m.role === 'assistant' ? 'text-slate-200' : 'text-slate-300'}>
-            <span className="mr-2 rounded-md px-2 py-0.5 text-xs uppercase tracking-wide text-slate-400">{m.role}</span>
-            <span>{m.content}</span>
-          </div>
-        ))}
+    <div className="mx-auto w-full max-w-6xl px-6">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white shadow-xl backdrop-blur-sm">
+        <div className="max-h-56 space-y-3 overflow-y-auto pr-2">
+          {messages.map((m, i) => (
+            <div key={i} className={m.role === 'assistant' ? 'text-white/90' : 'text-white'}>
+              <span className="mr-2 rounded-md bg-white/10 px-2 py-0.5 text-xs uppercase tracking-wide text-white/60">
+                {m.role}
+              </span>
+              {m.content}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={send} className="mt-3 flex gap-2">
+          <input
+            ref={inputRef}
+            placeholder="Ask about the deals…"
+            className="h-11 flex-1 rounded-xl border border-white/10 bg-transparent px-3 text-white placeholder-white/50 outline-none"
+          />
+          <button
+            type="submit"
+            className="h-11 rounded-xl bg-indigo-500 px-4 text-sm font-semibold text-white hover:bg-indigo-400"
+          >
+            Send
+          </button>
+        </form>
       </div>
-      <div className="mt-3 flex items-center gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask e.g. cheapest under 2000"
-          className="w-full rounded-xl border border-white/10 bg-transparent px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:outline-none"
-        />
-        <button onClick={handleSend} className="rounded-xl bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600">Send</button>
-      </div>
-      {lastQuery && (
-        <div className="mt-2 text-xs text-slate-400">Last asked: {lastQuery}</div>
-      )}
     </div>
   );
 }

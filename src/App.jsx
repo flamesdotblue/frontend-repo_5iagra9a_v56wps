@@ -1,132 +1,127 @@
 import React, { useMemo, useState } from 'react';
-import HeroSection from './components/HeroSection';
-import SearchBar from './components/SearchBar';
-import ComparisonGrid from './components/ComparisonGrid';
-import ChatAssistant from './components/ChatAssistant';
+import HeroSection from './components/HeroSection.jsx';
+import SearchBar from './components/SearchBar.jsx';
+import ComparisonGrid from './components/ComparisonGrid.jsx';
+import ChatAssistant from './components/ChatAssistant.jsx';
 
 const AFFILIATE_IDS = {
-  amazon: 'aff-amz-123',
-  flipkart: 'aff-flk-456',
-  snapdeal: 'aff-snp-789',
-  meesho: 'aff-msh-321',
+  amazon: 'smartfindr-21',
+  flipkart: 'smartfindr',
+  snapdeal: 'smartfindr',
+  meesho: 'smartfindr',
 };
 
-function affiliateUrlFor(store, productId) {
-  const id = AFFILIATE_IDS[store] || 'aff-generic';
-  const baseMap = {
-    amazon: `https://www.amazon.in/dp/${productId}?tag=${id}`,
-    flipkart: `https://www.flipkart.com/item/${productId}?affid=${id}`,
-    snapdeal: `https://www.snapdeal.com/product/${productId}?utm_source=${id}`,
-    meesho: `https://meesho.com/item/${productId}?utm_campaign=${id}`,
-  };
-  return baseMap[store] || `https://example.com/product/${productId}?ref=${id}`;
+function buildAffiliateUrl(store, productQuery) {
+  const q = encodeURIComponent(productQuery);
+  switch (store.toLowerCase()) {
+    case 'amazon':
+      return `https://www.amazon.in/s?k=${q}&tag=${AFFILIATE_IDS.amazon}`;
+    case 'flipkart':
+      return `https://www.flipkart.com/search?q=${q}&affid=${AFFILIATE_IDS.flipkart}`;
+    case 'snapdeal':
+      return `https://www.snapdeal.com/search?keyword=${q}&utm_source=aff_prog&utm_campaign=afts&offer_id=${AFFILIATE_IDS.snapdeal}`;
+    case 'meesho':
+      return `https://www.meesho.com/search?q=${q}&utm_source=aff&affid=${AFFILIATE_IDS.meesho}`;
+    default:
+      return '#';
+  }
 }
 
 async function mockFetchDeals(query) {
-  await new Promise((r) => setTimeout(r, 800));
-  const base = [
-    {
-      id: 'amz-001',
-      store: 'amazon',
-      title: `${query} – Amazon`,
-      price: 1799,
-      origPrice: 2499,
-      rating: 4.3,
-      deliveryDays: 2,
-      image: 'https://images.unsplash.com/photo-1695740633675-d060b607f5c4?ixid=M3w3OTkxMTl8MHwxfHNlYXJjaHwxfHxjZXJhbWljJTIwcG90dGVyeSUyMGhhbmRtYWRlfGVufDB8MHx8fDE3NjE1MDAxMzd8MA&ixlib=rb-4.1.0&w=1600&auto=format&fit=crop&q=80',
-      limitedTime: true,
-      sentimentScore: 0.68,
-    },
-    {
-      id: 'flk-002',
-      store: 'flipkart',
-      title: `${query} – Flipkart`,
-      price: 1699,
-      origPrice: 2199,
-      rating: 4.1,
-      deliveryDays: 3,
-      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=400&auto=format&fit=crop',
-      limitedTime: false,
-      sentimentScore: 0.62,
-    },
-    {
-      id: 'snp-003',
-      store: 'snapdeal',
-      title: `${query} – Snapdeal`,
-      price: 1899,
-      origPrice: 2399,
-      rating: 4.0,
-      deliveryDays: 5,
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop',
-      limitedTime: false,
-      sentimentScore: 0.58,
-    },
-    {
-      id: 'msh-004',
-      store: 'meesho',
-      title: `${query} – Meesho`,
-      price: 1649,
-      origPrice: 2099,
-      rating: 4.2,
-      deliveryDays: 4,
-      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=400&auto=format&fit=crop',
-      limitedTime: true,
-      sentimentScore: 0.6,
-    },
-  ].map((i) => ({ ...i, affiliateUrl: affiliateUrlFor(i.store, i.id) }));
+  // Simulate a network call
+  await new Promise((r) => setTimeout(r, 700));
+  const baseImages = {
+    Amazon:
+      'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop',
+    Flipkart:
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop',
+    Snapdeal:
+      'https://images.unsplash.com/photo-1526178611998-6a3b63b2702f?q=80&w=1200&auto=format&fit=crop',
+    Meesho:
+      'https://images.unsplash.com/photo-1546421845-6471bdcf3cf4?q=80&w=1200&auto=format&fit=crop',
+  };
 
-  return base;
+  const stores = ['Amazon', 'Flipkart', 'Snapdeal', 'Meesho'];
+  return stores.map((store, i) => {
+    const price = Math.round(30000 + Math.random() * 30000 - i * 1500);
+    const origPrice = price + Math.round(2000 + Math.random() * 6000);
+    const rating = 3.6 + Math.random() * 1.4;
+    const deliveryDays = 2 + Math.floor(Math.random() * 6);
+    const sentimentScore = Math.round(Math.random() * 10) / 10;
+    const limitedTime = Math.random() > 0.65;
+
+    return {
+      id: `${store}-${Date.now()}-${i}`,
+      store,
+      price,
+      origPrice,
+      rating,
+      deliveryDays,
+      sentimentScore,
+      limitedTime,
+      image: baseImages[store],
+      affiliateUrl: buildAffiliateUrl(store, query),
+    };
+  });
 }
 
 export default function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSearch = async (query) => {
-    setLoading(true);
-    const deals = await mockFetchDeals(query);
-    setItems(deals);
-    setLoading(false);
-  };
-
-  const smartSummary = useMemo(() => {
-    if (!items.length) return '';
-    const cheapest = [...items].sort((a, b) => a.price - b.price)[0];
-    const bestRated = [...items].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
-    return `Cheapest is ₹${cheapest.price.toLocaleString()} on ${cheapest.store}. Best rated is ${bestRated.rating}★ on ${bestRated.store}.`;
+  const summary = useMemo(() => {
+    if (!items.length) return null;
+    const cheapest = items.reduce((min, it) => (it.price < min.price ? it : min), items[0]);
+    const bestRated = items.slice().sort((a, b) => b.rating - a.rating || a.price - b.price)[0];
+    return { cheapest, bestRated };
   }, [items]);
 
+  const onSearch = async (query) {
+    try {
+      setError('');
+      setLoading(true);
+      const data = await mockFetchDeals(query);
+      setItems(data);
+    } catch (e) {
+      console.error(e);
+      setError('Failed to fetch deals. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <HeroSection appName="SmartFindr" tagline="Compare real-time deals with AI insight" />
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+      <HeroSection />
 
-        <div className="mx-auto mt-8 max-w-3xl">
-          <SearchBar onSearch={handleSearch} />
-          {loading && (
-            <div className="mt-4 text-center text-slate-400">Gathering deals…</div>
-          )}
-        </div>
+      <main className="mx-auto -mt-20 flex w-full max-w-6xl flex-col gap-8 px-6">
+        <SearchBar onSearch={onSearch} loading={loading} />
 
-        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <ComparisonGrid items={items} />
+        {error && (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-200">
+            {error}
           </div>
-          <div className="lg:col-span-1">
-            <ChatAssistant items={items} />
-            {smartSummary && (
-              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-                {smartSummary}
-              </div>
-            )}
-          </div>
-        </div>
+        )}
 
-        <footer className="mt-12 flex flex-col items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400 sm:flex-row">
-          <div>© {new Date().getFullYear()} SmartFindr · Smarter shopping starts here.</div>
-          <div className="opacity-75">Affiliate links may earn us a commission.</div>
-        </footer>
-      </div>
+        {summary && (
+          <div className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80 backdrop-blur-sm">
+            <span className="font-semibold text-white">Smart summary:</span>{' '}
+            Cheapest on <span className="text-emerald-300">{summary.cheapest.store}</span> at ₹
+            {Math.round(summary.cheapest.price)}. Best rated on{' '}
+            <span className="text-sky-300">{summary.bestRated.store}</span> with rating{' '}
+            {summary.bestRated.rating.toFixed(1)}.
+          </div>
+        )}
+
+        <ComparisonGrid items={items} />
+
+        <ChatAssistant items={items} />
+      </main>
+
+      <footer className="mx-auto mt-16 w-full max-w-6xl px-6 pb-12 text-center text-white/60">
+        © {new Date().getFullYear()} SmartFindr · Compare smarter. Save bigger.
+      </footer>
     </div>
   );
 }

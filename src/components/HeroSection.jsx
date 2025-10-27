@@ -1,43 +1,47 @@
 import React from 'react';
 import Spline from '@splinetool/react-spline';
 
-const storeLogos = [
-  { name: 'Amazon', url: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg' },
-  { name: 'Flipkart', url: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Flipkart_logo.png' },
-  { name: 'Snapdeal', url: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Snapdeal_logo.png' },
-  { name: 'Meesho', url: 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Meesho-logo.png' },
+const stores = [
+  { name: 'Amazon', color: 'bg-yellow-400 text-black' },
+  { name: 'Flipkart', color: 'bg-blue-600 text-white' },
+  { name: 'Snapdeal', color: 'bg-red-500 text-white' },
+  { name: 'Meesho', color: 'bg-pink-500 text-white' },
 ];
 
-export default function HeroSection({ appName = 'SmartFindr', tagline = 'Find the smartest deals across stores' }) {
+export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 shadow-xl">
+    <section className="relative h-[70vh] w-full overflow-hidden rounded-b-3xl">
       <div className="absolute inset-0">
-        <Spline scene="https://prod.spline.design/YmXQyIu0iYB2Vw8F/scene.splinecode" style={{ width: '100%', height: '100%' }} />
+        {/* 3D Scene */}
+        <Spline
+          scene="https://prod.spline.design/z0e8vE1q0n4s8J6o/scene.splinecode"
+          style={{ width: '100%', height: '100%' }}
+        />
       </div>
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/70 to-slate-950/95" />
+      {/* Soft gradient overlays */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/50" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(99,102,241,0.35),transparent)]" />
 
-      <div className="relative z-10 px-6 py-20 sm:px-10 lg:px-14">
-        <div className="mx-auto max-w-4xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 backdrop-blur">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            Live deal intelligence
-          </span>
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-            {appName}
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
-            {tagline}. Compare prices, ratings, delivery time, and sentiment — then buy with confidence.
-          </p>
+      {/* Content */}
+      <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-6 text-center text-white">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+          SmartFindr
+        </h1>
+        <p className="mt-4 max-w-2xl text-balance text-white/80">
+          Compare real-time deals across your favorite stores. Get the best price,
+          fastest delivery, and smartest value in seconds.
+        </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 opacity-90">
-            {storeLogos.map((s) => (
-              <div key={s.name} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur">
-                <img src={s.url} alt={s.name} className="h-6 w-auto" />
-                <span className="text-sm text-slate-200">{s.name}</span>
-              </div>
-            ))}
-          </div>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          {stores.map((s) => (
+            <span
+              key={s.name}
+              className={`inline-flex items-center rounded-full ${s.color} px-3 py-1 text-sm font-medium shadow/50 shadow-black/20 ring-1 ring-white/10`}
+            >
+              {s.name}
+            </span>
+          ))}
         </div>
       </div>
     </section>
