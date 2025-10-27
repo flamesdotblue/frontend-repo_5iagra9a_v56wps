@@ -77,7 +77,7 @@ export default function App() {
     return { cheapest, bestRated };
   }, [items]);
 
-  const onSearch = async (query) {
+  const onSearch = async (query) => {
     try {
       setError('');
       setLoading(true);
